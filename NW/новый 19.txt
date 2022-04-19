@@ -83,85 +83,70 @@ int FilePrint(FILE **file)
 
 int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
 {
-   
    int stringlen = strlen(string);
+
+   int i = size - 1;
    
    int start = 0;
-   int position = start + size - 1;
+   int position = start + i;
    
    int step = 0;
 
+   
    for (position; position < stringlen; position += step)
    {  
-      printf("%d \n", position);
-      int i = size - 1;
-      int bufposition = position;
-      for(i; i >= 0; i--)
-      {
-         if (string[bufposition] == desiredstring[i])
-         {
-            bufposition--;
-            if (bufposition == position - size + 1)
-            {
-               printf("%d position\n", position);
-               return position;
-            }    
-         }
-         else
-         {  
-            step = size;
-            for (int j = 0; j < size; j++)
-            {
-               if (string[bufposition] == desiredstring[j])
-               {
-                  step = skiparr[j];
-                  break;
-               }  
-            }
-            break;
-         }
-      }
+
+      for(i; i <= 0; i--)
+         if 
+      i += skiparr
+      printf("%3c", string[i]);
+      position = 
    }
-   return -1;
+
+   return 1;
 }
 
 //Перебор строк для поиска алгоритмом Боуера и Мура
 int FileBMSearch(FILE **file, int *skiparr, char *desiredstring, int desiredstringsize, int *coincidence)
 {
+   //Переменная, в которую поочередно будут помещаться считываемые строки
    char str[100];
+   //Указатель, в который будет помещен адрес массива, в который считана строка, или NULL если достигнут коней файла или произошла ошибка
    char *estr;
+   //Счётчик линий
    int line = 0;
    printf("Lines searching:\n");
+   //Чтение (построчно) данных из файла в бесконечном цикле
    while (1)
    {
+      //Чтение одной строки  из файла
       estr = fgets(str, sizeof(str), *file);
+      //Добавляем к счётчику строк 1
       line++;
+      //Проверка на конец файла или ошибку чтения
       if (estr == NULL)
       {
+         //Проверяем, что именно произошло: кончился файл или это ошибка чтения
          if (feof(*file) != 0)
          {
+            //Если файл закончился, выводим сообщение о завершении чтения и выходим из бесконечного цикла
             printf("\nFile searching complited\n");
             break;
          }
          else
          {
-
+            //Если при чтении произошла ошибка, выводим сообщение об ошибке и выходим из бесконечного цикла
             printf("\nERROR reading\n");
             return -1;
          }
       }
-
+      //Если файл не закончился, и не было ошибки чтения ищем подстроку в строке
       printf("%10d   %5d. %s", strlen(str), line, str);
       //Перераспределяем память для массива совпадений
-      printf ("%d aaaadded\n", coincidence[line - 1]);
-      
-      coincidence = (int*)realloc(coincidence, line * sizeof(int));
-
-      puts("Pererasp\n");
-
+      coincidence = (int *)realloc(coincidence, line * sizeof(int));
       coincidence[line - 1] = StringBMSearch(skiparr, str, desiredstring, desiredstringsize);
-      printf ("%d added\n", coincidence[line - 1]);
    }
+   //Переставляем указатель на 0 строку для дальнейшей работы
    fseek(*file, 0, SEEK_SET);
    return 1;
 }
@@ -244,16 +229,6 @@ void StringSkipArrayPrint(int *arr, char *string, int size)
    printf("\n");
 }
 
-void PrintArray(int *arr)
-{
-   int n = sizeof(arr)/sizeof(int);
-   for (int i = 0; i < n; i++)
-   {
-      printf("%d ", arr[i]);
-   }
-   printf("\n");
-}
-
 void main()
 {
    //Переменная, в которую будет помещен указатель на созданный поток данных
@@ -274,9 +249,6 @@ void main()
 
    int *arrcoincidences;
    FileBMSearch(&file, str.SkipArr, str.String, str.Length, arrcoincidences);
-
-
-   PrintArray(arrcoincidences);
 
    FileClose(&file);
 }
