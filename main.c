@@ -18,6 +18,39 @@ typedef struct SubString
    int *SkipArr;
 } SubString;
 
+typedef struct Node
+{
+   //Номер строки
+   int key;
+   //Индекс совпадения в строке
+   int value;
+   struct Node *next;
+} Node;
+
+typedef struct Dictionary
+{
+   Node *head;
+   Node *tail;
+
+   size_t size;
+} Dictionary;
+
+//Добавление элемента в Словарь
+void pushBack(Dictionary *d, int key, int value)
+{
+   d->size++;
+   Node *newNode = (Node *)malloc(sizeof(Node));
+   newNode->key = key;
+   newNode->value = value;
+   newNode->next = NULL;
+
+   if (d->head == NULL)
+      d->head = newNode;
+   else
+      d->tail->next = newNode;
+   d->tail = newNode;
+}
+
 //Открытие файла
 int FileOpen(FILE **file)
 {
@@ -81,34 +114,31 @@ int FilePrint(FILE **file)
    return 1;
 }
 
+//Поиск Алгоритмом Боуера и Мура в строке
 int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
 {
-   
+
    int stringlen = strlen(string);
-   
+
    int start = 0;
    int position = start + size - 1;
-   
+
    int step = 0;
 
    for (position; position < stringlen; position += step)
-   {  
-      printf("%d \n", position);
+   {
       int i = size - 1;
       int bufposition = position;
-      for(i; i >= 0; i--)
+      for (i; i >= 0; i--)
       {
          if (string[bufposition] == desiredstring[i])
          {
             bufposition--;
             if (bufposition == position - size + 1)
-            {
-               printf("%d position\n", position);
-               return position;
-            }    
+               return bufposition;
          }
          else
-         {  
+         {
             step = size;
             for (int j = 0; j < size; j++)
             {
@@ -116,7 +146,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
                {
                   step = skiparr[j];
                   break;
-               }  
+               }
             }
             break;
          }
@@ -126,7 +156,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
 }
 
 //Перебор строк для поиска алгоритмом Боуера и Мура
-int FileBMSearch(FILE **file, int *skiparr, char *desiredstring, int desiredstringsize, int *coincidence)
+int FileBMSearch(FILE **file, int *skiparr, char *desiredstring, int desiredstringsize, Dictionary *d)
 {
    char str[100];
    char *estr;
@@ -140,27 +170,25 @@ int FileBMSearch(FILE **file, int *skiparr, char *desiredstring, int desiredstri
       {
          if (feof(*file) != 0)
          {
-            printf("\nFile searching complited\n");
+            printf("File searching complited\n");
             break;
          }
          else
          {
 
-            printf("\nERROR reading\n");
+            printf("ERROR reading\n");
             return -1;
          }
       }
 
-      printf("%10d   %5d. %s", strlen(str), line, str);
+      // printf("%5d   %5d. %s", strlen(str), line, str);
       //Перераспределяем память для массива совпадений
-      printf ("%d aaaadded\n", coincidence[line - 1]);
-      
-      coincidence = (int*)realloc(coincidence, line * sizeof(int));
 
-      puts("Pererasp\n");
-
-      coincidence[line - 1] = StringBMSearch(skiparr, str, desiredstring, desiredstringsize);
-      printf ("%d added\n", coincidence[line - 1]);
+      int i = StringBMSearch(skiparr, str, desiredstring, desiredstringsize);
+      if (i != -1)
+      {
+         pushBack(d, line, i);
+      }
    }
    fseek(*file, 0, SEEK_SET);
    return 1;
@@ -183,6 +211,7 @@ int FileClose(FILE **file)
    }
 }
 
+//Ввод строки
 char *StringGet(int *len)
 {
    *len = 0;                               // изначально строка пуста
@@ -210,6 +239,7 @@ char *StringGet(int *len)
    return s; // возвращаем указатель на считанную строку
 }
 
+//Заполнения массива переходов для строки
 void StringSkipArrayFill(int *arr, char *string, int size)
 {
    //Функция заполняет с конца заполняет элементы последовательно с 0, заменяет на минимальное оставшееся
@@ -230,6 +260,7 @@ void StringSkipArrayFill(int *arr, char *string, int size)
    }
 }
 
+//Вывод массива переходов для строки
 void StringSkipArrayPrint(int *arr, char *string, int size)
 {
    for (int i = 0; i < size; i++)
@@ -244,14 +275,14 @@ void StringSkipArrayPrint(int *arr, char *string, int size)
    printf("\n");
 }
 
-void PrintArray(int *arr)
+//Вывод Словаря совпадений
+void DictionaryPrint(Node *head)
 {
-   int n = sizeof(arr)/sizeof(int);
-   for (int i = 0; i < n; i++)
+   while (head)
    {
-      printf("%d ", arr[i]);
+      printf("%d. on %d \n", head->key, head->value);
+      head = head->next;
    }
-   printf("\n");
 }
 
 void main()
@@ -272,11 +303,16 @@ void main()
    StringSkipArrayFill(str.SkipArr, str.String, str.Length);
    StringSkipArrayPrint(str.SkipArr, str.String, str.Length);
 
-   int *arrcoincidences;
-   FileBMSearch(&file, str.SkipArr, str.String, str.Length, arrcoincidences);
+   /*
+   Dictionary d;
+   d.head = NULL;
+   d.tail = d.head;
+   d.size = 0;
 
+   FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
 
-   PrintArray(arrcoincidences);
+   DictionaryPrint(d.head);
+   */
 
    FileClose(&file);
 }
