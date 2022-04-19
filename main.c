@@ -1,75 +1,246 @@
-#include <string.h>
-#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-/* Вход: needle+nlen - что искать
- *   offset - позиция конца суффикса; suffixlen - его длина
- * Выход: 1, если есть совпадение суффикса (и нет совпадения более длинного суффикса)
- */
-static int suffix_match(const unsigned char *needle, size_t nlen, size_t offset, size_t suffixlen)
+/*
+Ращупкин Евгений КЭ-203
+28 вариант
+Lab6
+В текстовом файле хранится текст.
+Осуществить прямой поиск введенного пользователем слова с использованием алгоритма
+Боуера и Мура
+*/
+
+typedef struct SubString
 {
-    if (offset > suffixlen)
-        return needle[offset - suffixlen - 1] != needle[nlen - suffixlen - 1] &&
-            memcmp(needle + nlen - suffixlen, needle + offset - suffixlen, suffixlen) == 0;
-    else
-        return memcmp(needle + nlen - offset, needle, offset) == 0;
+   int Length;
+   char *String;
+   int *SkipArr;
+} SubString;
+
+//Открытие файла
+int FileOpen(FILE **file)
+{
+   // Открытие файла с режимом доступа «только чтение» и привязка к нему потока данных
+   printf("Opening: ");
+   *file = fopen("input.txt", "r");
+
+   // Проверка открытия файла
+   if (*file == NULL)
+   {
+      printf("ERROR\n");
+      return -1;
+   }
+
+   else
+   {
+      printf("completed\n");
+      return 1;
+   }
 }
 
-static size_t max(size_t a, size_t b)
+//Чтение файла построчно
+int FileRead(FILE **file)
 {
-    return a > b ? a : b; 
+   //Переменная, в которую поочередно будут помещаться считываемые строки
+   char str[100];
+   //Указатель, в который будет помещен адрес массива, в который считана строка, или NULL если достигнут коней файла или произошла ошибка
+   char *estr;
+   //Счётчик линий
+   int line = 0;
+   printf("Lines reading:\n");
+   //Чтение (построчно) данных из файла в бесконечном цикле
+   while (1)
+   {
+      //Чтение одной строки  из файла
+      estr = fgets(str, sizeof(str), *file);
+      //Добавляем к счётчику строк 1
+      line++;
+      //Проверка на конец файла или ошибку чтения
+      if (estr == NULL)
+      {
+         //Проверяем, что именно произошло: кончился файл или это ошибка чтения
+         if (feof(*file) != 0)
+         {
+            //Если файл закончился, выводим сообщение о завершении чтения и выходим из бесконечного цикла
+            printf("\nFile reading complited\n");
+            break;
+         }
+         else
+         {
+            //Если при чтении произошла ошибка, выводим сообщение об ошибке и выходим из бесконечного цикла
+            printf("\nERROR reading\n");
+            return -1;
+         }
+      }
+      //Если файл не закончился, и не было ошибки чтения выводим считанную строку  на экран
+      printf("   %5d. %s", line, str);
+   }
+   //Переставляем указатель на 0 строку для дальнейшей работы
+   fseek(*file, 0, SEEK_SET);
+   return 1;
 }
 
-/* Вход: haystack - где искать, needle - что искать.
- *   hlen - длина haystack, nlen - длина needle
- * Выход: указатель на первое вхождение needle в haystack, либо NULL
- */
-const unsigned char* memmem_boyermoore
-    (const unsigned char* haystack, size_t hlen,
-     const unsigned char* needle,   size_t nlen)
+//Чтение файла построчно
+int FileBMSearch(FILE **file)
 {
-    size_t skip[nlen];          /* Таблица суффиксов */
-    size_t occ[UCHAR_MAX + 1]; /* Таблица стоп-символов */
-    
-    if(nlen > hlen || nlen <= 0 || !haystack || !needle) 
-        return NULL;
+   //Переменная, в которую поочередно будут помещаться считываемые строки
+   char str[100];
+   //Указатель, в который будет помещен адрес массива, в который считана строка, или NULL если достигнут коней файла или произошла ошибка
+   char *estr;
+   //Счётчик линий
+   int line = 0;
+   printf("Lines reading:\n");
+   //Чтение (построчно) данных из файла в бесконечном цикле
+   while (1)
+   {
+      //Чтение одной строки  из файла
+      estr = fgets(str, sizeof(str), *file);
+      //Добавляем к счётчику строк 1
+      line++;
+      //Проверка на конец файла или ошибку чтения
+      if (estr == NULL)
+      {
+         //Проверяем, что именно произошло: кончился файл или это ошибка чтения
+         if (feof(*file) != 0)
+         {
+            //Если файл закончился, выводим сообщение о завершении чтения и выходим из бесконечного цикла
+            printf("\nFile reading complited\n");
+            break;
+         }
+         else
+         {
+            //Если при чтении произошла ошибка, выводим сообщение об ошибке и выходим из бесконечного цикла
+            printf("\nERROR reading\n");
+            return -1;
+         }
+      }
+      //Если файл не закончился, и не было ошибки чтения выводим считанную строку  на экран
+      printf("   %5d. %s", line, str);
+   }
+   //Переставляем указатель на 0 строку для дальнейшей работы
+   fseek(*file, 0, SEEK_SET);
+   return 1;
+}
 
-    /* ПОСТРОЕНИЕ ТАБЛИЦЫ СТОП-СИМВОЛОВ */
-    
-    /* Заполняем -1 (в Си нумерация символов с 0!!) */
-    for(size_t a=0; a<UCHAR_MAX+1; ++a)
-        occ[a] = -1;
-    
-    /* В таблицу occ записывается последнее вхождение в needle  */
-    /* (исключая последний символ) */
-    for(size_t a = 0; a < nlen - 1; ++a) 
-        occ[needle[a]] = a;
-    
-    /* ПОСТРОЕНИЕ ТАБЛИЦЫ СУФФИКСОВ */  
-    /* Упрощённый вариант. Можно реализовать быстрее. */
-    for(size_t a = 0; a < nlen; ++a)
-    {
-        size_t offs = nlen;
-        while(offs && !suffix_match(needle, nlen, offs, a))
-            --offs;
-        skip[nlen - a - 1] = nlen - offs;
-    }
-    
-    /* ПОИСК */
-    for(size_t hpos = 0; hpos <= hlen - nlen; )
-    {
-        size_t npos = nlen - 1;
-        /* Сверка needle и haystack с конца */
-        while(needle[npos] == haystack[npos + hpos])
-        {
-            if(npos == 0) 
-                return haystack + hpos;
+//Закрытие файла
+int FileClose(FILE **file)
+{
+   printf("Closing a file: ");
+   if (fclose(*file) == EOF)
+   {
+      printf("ERROR\n");
+      return -1;
+   }
 
-            --npos;
-        }
-        /* Не совпало! */
-        hpos += max(skip[npos], npos - occ[haystack[npos + hpos]]);
-        /*          ^^^         ^^^^                               */
-        /*        суффикс     стоп-символ                          */
-    }
-    return NULL;
+   else
+   {
+      printf("completed.\n");
+      return 1;
+   }
+}
+
+char *StringGet(int *len)
+{
+   *len = 0;                               // изначально строка пуста
+   int capacity = 1;                       // ёмкость контейнера динамической строки (1, так как точно будет '\0')
+   char *s = (char *)malloc(sizeof(char)); // динамическая пустая строка
+
+   char c = getchar(); // символ для чтения данных
+
+   // читаем символы, пока не получим символ переноса строки (\n)
+   while (c != '\n')
+   {
+      s[(*len)++] = c; // заносим в строку новый символ
+
+      // если реальный размер больше размера контейнера, то увеличим его размер
+      if (*len >= capacity)
+      {
+         capacity++;                                      // увеличиваем ёмкость строки на 1
+         s = (char *)realloc(s, capacity * sizeof(char)); // создаём новую строку с увеличенной ёмкостью
+      }
+      c = getchar(); // считываем следующий символ
+   }
+
+   s[*len] = '\0'; // завершаем строку символом конца строки
+
+   return s; // возвращаем указатель на считанную строку
+}
+
+/*
+int ArrCoincedence(int *arr, char *string, char desired, int size, int end)
+{
+   printf("  %c desird\n", desired);
+   for (int i = size ; i >= end; i--)
+   {
+      if (string[i] == desired)
+      {
+         printf("%c match\n", string[i]);
+         return size - i - 1;
+
+      }
+
+   }
+   return end;
+}
+*/
+
+void StringSkipArrayFill(int *arr, char *string, int size)
+{
+   //Функция заполняет с конца заполняет элементы последовательно с 0, заменяет на минимальное оставшееся
+   int i = size - 1;
+   for (i; i >= 0; i--)
+   {
+      arr[i] = size - i - 1;
+      int j = size - 1;
+      int end = i;
+      for (j; j >= end; j--)
+      {
+         if (string[j] == string[i])
+         {
+            arr[i] = arr[j];
+            break;
+         }
+      }
+   }
+}
+
+void StringSkipArrayPrint(int *arr, char *string, int size)
+{
+   for (int i = 0; i < size; i++)
+   {
+      printf("%3c", string[i]);
+   }
+   printf("\n");
+   for (int i = 0; i < size; i++)
+   {
+      printf("%3d", arr[i]);
+   }
+   printf("\n");
+}
+
+void main()
+{
+   //Переменная, в которую будет помещен указатель на созданный поток данных
+   FILE *file;
+
+   SubString str;
+
+   str.String = StringGet(&str.Length);
+   str.SkipArr = malloc(str.Length * sizeof(int));
+
+   printf("You've wrote: %s, len = %d\n", str.String, str.Length);
+
+   StringSkipArrayFill(str.SkipArr, str.String, str.Length);
+
+   StringSkipArrayPrint(str.SkipArr, str.String, str.Length);
+
+   // for (int i = 0; i < str.Length; i++)
+   //{
+   //  printf("%c number %d\n", str.String[i], str.SkipArr[i]);
+   // }
+   //  FileOpen(&file);
+
+   // FileRead(&file);
+
+   // FileClose(&file);
 }
