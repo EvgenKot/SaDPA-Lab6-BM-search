@@ -11,6 +11,7 @@ Lab6
 Боуера и Мура
 */
 
+//Подстрока
 typedef struct SubString
 {
    int Length;
@@ -18,6 +19,7 @@ typedef struct SubString
    int *SkipArr;
 } SubString;
 
+//Узел словаря
 typedef struct Node
 {
    //Номер строки
@@ -27,9 +29,12 @@ typedef struct Node
    struct Node *next;
 } Node;
 
+//Словарь
 typedef struct Dictionary
-{
+{  
+//Голова
    Node *head;
+//Конец
    Node *tail;
 
    size_t size;
@@ -134,7 +139,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
          if (string[bufposition] == desiredstring[i])
          {
             bufposition--;
-            if (bufposition == position - size + 1)
+            if (bufposition == position - size)
                return bufposition;
          }
          else
@@ -242,22 +247,30 @@ char *StringGet(int *len)
 //Заполнения массива переходов для строки
 void StringSkipArrayFill(int *arr, char *string, int size)
 {
-   //Функция заполняет с конца заполняет элементы последовательно с 0, заменяет на минимальное оставшееся
-   int i = size - 1;
+   //Функция заполняет с конца элементы последовательно с 0, заменяет на минимальное оставшееся
+   //Для элементов до последнего
+   int i = size - 2;
    for (i; i >= 0; i--)
    {
       arr[i] = size - i - 1;
-      int j = size - 1;
+      int j = size - 2;
       int end = i;
       for (j; j >= end; j--)
-      {
          if (string[j] == string[i])
          {
             arr[i] = arr[j];
             break;
          }
-      }
    }
+   //Для последнего элемента
+   arr[size - 1] = size;
+   int j = size - 2;
+   for (j; j >= 0; j--)
+      if (string[j] == string[size - 1])
+      {
+         arr[size - 1] = arr[j];
+         break;
+      }
 }
 
 //Вывод массива переходов для строки
@@ -287,13 +300,13 @@ void DictionaryPrint(Node *head)
 
 void main()
 {
-   //Переменная, в которую будет помещен указатель на созданный поток данных
+//Переменная, в которую будет помещен указатель на созданный поток данных
    FILE *file;
-
+//Открытие файла
    FileOpen(&file);
-
+//Вывод содержимого
    FilePrint(&file);
-
+//Создаём подстроку
    SubString str;
 
    printf("Enter string:\n>>");
@@ -303,16 +316,18 @@ void main()
    StringSkipArrayFill(str.SkipArr, str.String, str.Length);
    StringSkipArrayPrint(str.SkipArr, str.String, str.Length);
 
-   /*
+//Создаём словарь
    Dictionary d;
    d.head = NULL;
    d.tail = d.head;
    d.size = 0;
 
+//Заполняем словарь
    FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
 
+//Вывод словаря
    DictionaryPrint(d.head);
-   */
 
+//Закрытие файла
    FileClose(&file);
 }
