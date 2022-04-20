@@ -140,7 +140,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
          {
             bufposition--;
             if (bufposition == position - size)
-               return bufposition;
+               return bufposition + 1;
          }
          else
          {
@@ -298,6 +298,32 @@ void DictionaryPrint(Node *head)
    }
 }
 
+//Удаление элемента словаря
+int pop(Dictionary* d) {
+    d -> size --;
+    Node* prev = NULL;
+    int val;
+    if (d->head == NULL) {
+        exit(-1);
+    }
+    prev = d->head;
+    val = prev->value;
+    d->head = d->head->next;
+    free(prev);
+    return val;
+}
+
+//Освобождение памяти
+void DictionaryFree(Dictionary *d)
+{
+   printf("Free Dictionary\n");
+   while (d->size != 0)
+   {
+      pop(d);
+   }
+   printf("Completed\n");
+}
+
 void main()
 {
 //Переменная, в которую будет помещен указатель на созданный поток данных
@@ -322,11 +348,12 @@ void main()
    d.tail = d.head;
    d.size = 0;
 
-//Заполняем словарь
+//Заполняем словарь совпадениями
    FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
-
 //Вывод словаря
    DictionaryPrint(d.head);
+//Освобождение памяти словаря
+   DictionaryFree(&d);
 
 //Закрытие файла
    FileClose(&file);
