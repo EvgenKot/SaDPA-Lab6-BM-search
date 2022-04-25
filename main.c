@@ -31,10 +31,10 @@ typedef struct Node
 
 //Словарь
 typedef struct Dictionary
-{
-   //Голова
+{  
+//Голова
    Node *head;
-   //Конец
+//Конец
    Node *tail;
 
    size_t size;
@@ -140,7 +140,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
          {
             bufposition--;
             if (bufposition == position - size)
-               return bufposition;
+               return bufposition + 1;
          }
          else
          {
@@ -219,8 +219,8 @@ int FileClose(FILE **file)
 //Ввод строки
 char *StringGet(int *len)
 {
-   *len = 0;                                          // изначально строка пуста
-   int capacity = 8;                                  // ёмкость контейнера динамической строки (1, так как точно будет '\0')
+   *len = 0;                               // изначально строка пуста
+   int capacity = 8;                       // ёмкость контейнера динамической строки (1, так как точно будет '\0')
    char *s = (char *)malloc(capacity * sizeof(char)); // динамическая пустая строка
 
    char c = getchar(); // символ для чтения данных
@@ -228,14 +228,14 @@ char *StringGet(int *len)
    // читаем символы, пока не получим символ переноса строки (\n)
    while (c != '\n')
    {
-      // если реальный размер больше размера контейнера, то увеличим его размер
-      if (*len == capacity)
-      {
-         capacity *= 2;                                   // увеличиваем ёмкость строки на 1
-         s = (char *)realloc(s, capacity * sizeof(char)); // создаём новую строку с увеличенной ёмкостью
-      }
       s[(*len)++] = c; // заносим в строку новый символ
 
+      // если реальный размер больше размера контейнера, то увеличим его размер
+      if (*len >= capacity)
+      {
+         capacity = capacity * 2;                                      // увеличиваем ёмкость строки на 1
+         s = (char *)realloc(s, capacity * sizeof(char)); // создаём новую строку с увеличенной ёмкостью
+      }
       c = getchar(); // считываем следующий символ
    }
 
@@ -291,11 +291,6 @@ void StringSkipArrayPrint(int *arr, char *string, int size)
 //Вывод Словаря совпадений
 void DictionaryPrint(Node *head)
 {
-   if (!head)
-   {
-      printf("No element\n");
-      return;
-   }
    while (head)
    {
       printf("%d. on %d \n", head->key, head->value);
@@ -303,22 +298,19 @@ void DictionaryPrint(Node *head)
    }
 }
 
-<<<<<<< HEAD
 //Удаление элемента словаря
-int pop(Dictionary *d)
-{
-   d->size--;
-   Node *prev = NULL;
-   int val;
-   if (d->head == NULL)
-   {
-      exit(-1);
-   }
-   prev = d->head;
-   val = prev->value;
-   d->head = d->head->next;
-   free(prev);
-   return val;
+int pop(Dictionary* d) {
+    d -> size --;
+    Node* prev = NULL;
+    int val;
+    if (d->head == NULL) {
+        exit(-1);
+    }
+    prev = d->head;
+    val = prev->value;
+    d->head = d->head->next;
+    free(prev);
+    return val;
 }
 
 //Освобождение памяти
@@ -329,21 +321,18 @@ void DictionaryFree(Dictionary *d)
    {
       pop(d);
    }
-   free(d);
    printf("Completed\n");
 }
 
-=======
->>>>>>> parent of a3c005a (v0.10.0)
 void main()
 {
-   //Переменная, в которую будет помещен указатель на созданный поток данных
+//Переменная, в которую будет помещен указатель на созданный поток данных
    FILE *file;
-   //Открытие файла
+//Открытие файла
    FileOpen(&file);
-   //Вывод содержимого
+//Вывод содержимого
    FilePrint(&file);
-   //Создаём подстроку
+//Создаём подстроку
    SubString str;
 
    printf("Enter string:\n>>");
@@ -353,27 +342,19 @@ void main()
    StringSkipArrayFill(str.SkipArr, str.String, str.Length);
    StringSkipArrayPrint(str.SkipArr, str.String, str.Length);
 
-   //Создаём словарь
+//Создаём словарь
    Dictionary d;
    d.head = NULL;
    d.tail = d.head;
    d.size = 0;
 
-<<<<<<< HEAD
-   //Заполняем словарь совпадениями
+//Заполняем словарь совпадениями
    FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
-   //Вывод словаря
-   DictionaryPrint(d.head);
-   //Освобождение памяти словаря
-   DictionaryFree(&d);
-=======
-//Заполняем словарь
-   FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
-
 //Вывод словаря
    DictionaryPrint(d.head);
->>>>>>> parent of a3c005a (v0.10.0)
+//Освобождение памяти словаря
+   DictionaryFree(&d);
 
-   //Закрытие файла
+//Закрытие файла
    FileClose(&file);
 }
