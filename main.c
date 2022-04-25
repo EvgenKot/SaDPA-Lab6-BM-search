@@ -140,7 +140,7 @@ int StringBMSearch(int *skiparr, char *string, char *desiredstring, int size)
          {
             bufposition--;
             if (bufposition == position - size)
-               return bufposition + 1;
+               return bufposition;
          }
          else
          {
@@ -303,6 +303,7 @@ void DictionaryPrint(Node *head)
    }
 }
 
+<<<<<<< HEAD
 //Удаление элемента словаря
 int pop(Dictionary *d)
 {
@@ -332,6 +333,8 @@ void DictionaryFree(Dictionary *d)
    printf("Completed\n");
 }
 
+=======
+>>>>>>> parent of a3c005a (v0.10.0)
 void main()
 {
    //Переменная, в которую будет помещен указатель на созданный поток данных
@@ -356,12 +359,20 @@ void main()
    d.tail = d.head;
    d.size = 0;
 
+<<<<<<< HEAD
    //Заполняем словарь совпадениями
    FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
    //Вывод словаря
    DictionaryPrint(d.head);
    //Освобождение памяти словаря
    DictionaryFree(&d);
+=======
+//Заполняем словарь
+   FileBMSearch(&file, str.SkipArr, str.String, str.Length, &d);
+
+//Вывод словаря
+   DictionaryPrint(d.head);
+>>>>>>> parent of a3c005a (v0.10.0)
 
    //Закрытие файла
    FileClose(&file);
